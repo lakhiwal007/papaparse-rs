@@ -1,0 +1,23 @@
+# cargo-deny: https://embarkstudios.github.io/cargo-deny/
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+# ISC: libloading, via napi-sys (MIT-equivalent permissive licence).
+# Zlib: foldhash, via serde_json's `preserve_order` in the CLI only (permissive, OSI-approved).
+allow = ["MIT", "Apache-2.0", "Unicode-3.0", "ISC", "Zlib"]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

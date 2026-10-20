@@ -1,0 +1,15 @@
+/target
+/fuzz/target
+/fuzz/corpus
+/fuzz/artifacts
+/crates/papaparse-wasm/pkg
+/vendor
+**/*.rs.bk
+.DS_Store
+*.profraw
+lcov.info
+/bench/node_modules
+/bench/data
+/bench/pkg-wasm
+/bench/pkg-node
+/crates/papaparse-node/pkg

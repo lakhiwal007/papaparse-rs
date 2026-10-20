@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Fixtures contain significant \r and \r\n inside JSON strings only; keep files byte-exact.
+conformance/fixtures/*.json -text linguist-generated

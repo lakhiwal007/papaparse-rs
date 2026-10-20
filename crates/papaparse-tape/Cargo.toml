@@ -1,0 +1,16 @@
+[package]
+name = "papaparse-tape"
+description = "Shared layer of the JS bindings: PapaParse option mapping and the compact result tape"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[dependencies]
+papaparse.workspace = true
+
+[lints]
+workspace = true

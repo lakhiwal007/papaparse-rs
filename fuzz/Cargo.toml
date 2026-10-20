@@ -1,0 +1,36 @@
+[package]
+name = "papaparse-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+papaparse = { path = "../crates/papaparse", default-features = false }
+
+# Keep the fuzz crate out of the main workspace (it needs nightly).
+[workspace]
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "chunked"
+path = "fuzz_targets/chunked.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "unparse"
+path = "fuzz_targets/unparse.rs"
+test = false
+doc = false
+bench = false

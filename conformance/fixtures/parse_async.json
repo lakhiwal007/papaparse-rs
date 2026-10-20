@@ -1,0 +1,166 @@
+{
+	"upstreamVersion": "5.7.0",
+	"suite": "PARSE_ASYNC_TESTS",
+	"cases": [
+		{
+			"description": "Simple worker",
+			"input": "A,B,C\nX,Y,Z",
+			"config": {
+				"worker": true
+			},
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "Simple download",
+			"input": "sample.csv",
+			"config": {
+				"download": true
+			},
+			"disabled": true,
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "Simple download + worker",
+			"input": "sample.csv",
+			"config": {
+				"worker": true,
+				"download": true
+			},
+			"disabled": true,
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "Simple file",
+			"disabled": true,
+			"input": false,
+			"config": {},
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "Simple file + worker",
+			"disabled": true,
+			"input": false,
+			"config": {
+				"worker": true
+			},
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "File with a few regular and lots of empty lines",
+			"disabled": true,
+			"input": false,
+			"config": {
+				"skipEmptyLines": "greedy"
+			},
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		},
+		{
+			"description": "File with a few regular and lots of empty lines + worker",
+			"disabled": true,
+			"input": false,
+			"config": {
+				"worker": true,
+				"skipEmptyLines": "greedy"
+			},
+			"expected": {
+				"data": [
+					[
+						"A",
+						"B",
+						"C"
+					],
+					[
+						"X",
+						"Y",
+						"Z"
+					]
+				],
+				"errors": []
+			}
+		}
+	]
+}

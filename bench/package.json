@@ -1,0 +1,13 @@
+{
+  "name": "papaparse-rs-bench",
+  "private": true,
+  "type": "module",
+  "description": "Benchmarks papaparse-rs (native and wasm) against PapaParse in Node",
+  "scripts": {
+    "gen": "node gen-data.mjs",
+    "bench": "node run.mjs"
+  },
+  "devDependencies": {
+    "papaparse": "5.7.0"
+  }
+}

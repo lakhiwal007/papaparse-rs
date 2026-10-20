@@ -1,0 +1,41 @@
+[package]
+name = "papaparse"
+description = "A fast, RFC 4180-friendly CSV parser — a faithful Rust port of the PapaParse JavaScript library"
+readme = "../../README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = ["serde"]
+## Serialize/deserialize results with serde (needed by the CLI and wasm bindings).
+serde = ["dep:serde"]
+
+[dependencies]
+memchr = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion.workspace = true
+dhat.workspace = true
+serde_json.workspace = true
+
+# Needs its own process: it installs a tracking global allocator.
+[[test]]
+name = "no_leaks"
+harness = false
+
+[[bench]]
+name = "parse"
+harness = false
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

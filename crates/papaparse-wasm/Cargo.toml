@@ -1,0 +1,22 @@
+[package]
+name = "papaparse-wasm"
+description = "WebAssembly bindings exposing the papaparse crate with a PapaParse-compatible JS API"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+js-sys.workspace = true
+# No serde: results travel as a tape (see papaparse-tape) to keep the binary small and fast.
+papaparse-tape.workspace = true
+wasm-bindgen.workspace = true
+
+[lints]
+workspace = true

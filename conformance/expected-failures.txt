@@ -1,0 +1,2 @@
+# Upstream PapaParse cases that are known not to pass yet, one `suite::description` per line.
+# The conformance test fails if a case listed here starts passing, so remove it when fixed.

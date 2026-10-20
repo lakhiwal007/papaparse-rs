@@ -1,0 +1,633 @@
+{
+	"upstreamVersion": "5.7.0",
+	"suite": "CUSTOM_TESTS",
+	"cases": [
+		{
+			"description": "Pause and resume works (Regression Test for Bug #636)",
+			"disabled": true,
+			"timeout": 30000,
+			"expected": [
+				2001,
+				[
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84",
+						"DEF"
+					],
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84",
+						"DEF"
+					],
+					[
+						"Lorem ipsum dolor sit",
+						"42",
+						"ABC"
+					],
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84",
+						"DEF"
+					],
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84"
+					],
+					[
+						"Lorem ipsum dolor sit",
+						"42",
+						"ABC"
+					],
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84",
+						"DEF"
+					],
+					[
+						"Etiam a dolor vitae est vestibulum",
+						"84",
+						"DEF"
+					],
+					[
+						"Lorem ipsum dolor sit",
+						"42",
+						"ABC"
+					],
+					[
+						"Lorem ipsum dolor sit",
+						"42"
+					]
+				],
+				0
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar stepped = 0;\n\t\t\tvar dataRows = [];\n\t\t\tvar errorCount = 0;\n\t\t\tvar output = [];\n\t\t\tPapa.parse(BASE_PATH + \"verylong-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tstep: function(results, parser) {\n\t\t\t\t\tstepped++;\n\t\t\t\t\tif (results)\n\t\t\t\t\t{\n\t\t\t\t\t\tparser.pause();\n\t\t\t\t\t\tparser.resume();\n\t\t\t\t\t\tif (results.data && stepped % 200 === 0) {\n\t\t\t\t\t\t\tdataRows.push(results.data);\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\toutput.push(stepped);\n\t\t\t\t\toutput.push(dataRows);\n\t\t\t\t\toutput.push(errorCount);\n\t\t\t\t\tcallback(output);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Pause and resume works for chunks with NetworkStreamer",
+			"disabled": true,
+			"timeout": 30000,
+			"expected": [
+				"Etiam a dolor vitae est vestibulum",
+				"84",
+				"DEF"
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar chunkNum = 0;\n\t\t\tPapa.parse(BASE_PATH + \"verylong-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 1000,\n\t\t\t\tchunk: function(results, parser) {\n\t\t\t\t\tchunkNum++;\n\t\t\t\t\tparser.pause();\n\n\t\t\t\t\tif (chunkNum === 2) {\n\t\t\t\t\t\tcallback(results.data[0]);\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\n\t\t\t\t\tparser.resume();\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(new Error(\"Should have found matched row before parsing whole file\"));\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Pause and resume works for chunks with FileStreamer",
+			"disabled": true,
+			"timeout": 30000,
+			"expected": [
+				"Etiam a dolor vitae est vestibulum",
+				"84",
+				"DEF"
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar chunkNum = 0;\n\t\t\tvar xhr = new XMLHttpRequest();\n\t\t\txhr.onload = function() {\n\t\t\t\tPapa.parse(new File([xhr.responseText], './verylong-sample.csv'), {\n\t\t\t\t\tchunkSize: 1000,\n\t\t\t\t\tchunk: function(results, parser) {\n\t\t\t\t\t\tchunkNum++;\n\t\t\t\t\t\tparser.pause();\n\n\t\t\t\t\t\tif (chunkNum === 2) {\n\t\t\t\t\t\t\tcallback(results.data[0]);\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tparser.resume();\n\t\t\t\t\t},\n\t\t\t\t\tcomplete: function() {\n\t\t\t\t\t\tcallback(new Error(\"Should have found matched row before parsing whole file\"));\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t};\n\n\t\t\txhr.open(\"GET\", BASE_PATH + \"verylong-sample.csv\");\n\t\t\ttry {\n\t\t\t\txhr.send();\n\t\t\t} catch (err) {\n\t\t\t\tcallback(err);\n\t\t\t\treturn;\n\t\t\t}\n\t\t}"
+			}
+		},
+		{
+			"description": "Pause and resume works for chunks with StringStreamer",
+			"disabled": true,
+			"timeout": 30000,
+			"expected": [
+				"Etiam a dolor vitae est vestibulum",
+				"84",
+				"DEF"
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar chunkNum = 0;\n\t\t\tvar xhr = new XMLHttpRequest();\n\t\t\txhr.onload = function() {\n\t\t\t\tPapa.parse(xhr.responseText, {\n\t\t\t\t\tchunkSize: 1000,\n\t\t\t\t\tchunk: function(results, parser) {\n\t\t\t\t\t\tchunkNum++;\n\t\t\t\t\t\tparser.pause();\n\n\t\t\t\t\t\tif (chunkNum === 2) {\n\t\t\t\t\t\t\tcallback(results.data[0]);\n\t\t\t\t\t\t\treturn;\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\tparser.resume();\n\t\t\t\t\t},\n\t\t\t\t\tcomplete: function() {\n\t\t\t\t\t\tcallback(new Error(\"Should have found matched row before parsing whole file\"));\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t};\n\n\t\t\txhr.open(\"GET\", BASE_PATH + \"verylong-sample.csv\");\n\t\t\ttry {\n\t\t\t\txhr.send();\n\t\t\t} catch (err) {\n\t\t\t\tcallback(err);\n\t\t\t\treturn;\n\t\t\t}\n\t\t}"
+			}
+		},
+		{
+			"description": "Duplicate values in a data row are not renamed after resume (Regression Test for Issue #998)",
+			"expected": [
+				{
+					"c1": "foo, bar",
+					"c2": "foo, bar",
+					"c3": "v1"
+				},
+				{
+					"c1": "foo, bar",
+					"c2": "foo, bar",
+					"c3": "v2"
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar rows = [];\n\t\t\tPapa.parse('c1,c2,c3\\n\"foo, bar\",\"foo, bar\",v1\\n\"foo, bar\",\"foo, bar\",v2\\n', {\n\t\t\t\theader: true,\n\t\t\t\tstep: function(results, parser) {\n\t\t\t\t\tparser.pause();\n\t\t\t\t\trows.push(results.data);\n\t\t\t\t\tparser.resume();\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(rows);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Empty trailing fields stay empty after resume (Regression Test for Issue #985)",
+			"expected": [
+				{
+					"a": "1",
+					"b": "x",
+					"c": "",
+					"d": ""
+				},
+				{
+					"a": "2",
+					"b": "y",
+					"c": "",
+					"d": ""
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar rows = [];\n\t\t\tPapa.parse('a,b,c,d\\n1,x,,\\n2,y,,\\n', {\n\t\t\t\theader: true,\n\t\t\t\tstep: function(results, parser) {\n\t\t\t\t\tparser.pause();\n\t\t\t\t\trows.push(results.data);\n\t\t\t\t\tparser.resume();\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(rows);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Complete is called with all results if neither step nor chunk is defined",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				],
+				[
+					"d",
+					"E",
+					"f"
+				],
+				[
+					"G",
+					"h",
+					"i"
+				]
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tPapa.parse(new File(['A,b,c\\nd,E,f\\nG,h,i'], 'sample.csv'), {\n\t\t\t\tchunkSize: 3,\n\t\t\t\tcomplete: function(response) {\n\t\t\t\t\tcallback(response.data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step is called for each row",
+			"expected": 2,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar callCount = 0;\n\t\t\tPapa.parse('A,b,c\\nd,E,f', {\n\t\t\t\tstep: function() {\n\t\t\t\t\tcallCount++;\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(callCount);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				],
+				[
+					"d",
+					"E",
+					"f"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f', {\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps (headers)",
+			"expected": [
+				{
+					"One": "A",
+					"Two": "b",
+					"Three": "c"
+				},
+				{
+					"One": "d",
+					"Two": "E",
+					"Three": "f"
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('One,Two,Three\\nA,b,c\\nd,E,f', {\n\t\t\t\theader: true,\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps and worker (headers)",
+			"expected": [
+				{
+					"One": "A",
+					"Two": "b",
+					"Three": "c"
+				},
+				{
+					"One": "d",
+					"Two": "E",
+					"Three": "f"
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('One,Two,Three\\nA,b,c\\nd,E,f', {\n\t\t\t\theader: true,\n\t\t\t\tworker: true,\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps and worker",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				],
+				[
+					"d",
+					"E",
+					"f"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f', {\n\t\t\t\tworker: true,\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps when skipping empty lines",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				],
+				[
+					"d",
+					"E",
+					"f"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('A,b,c\\n\\nd,E,f', {\n\t\t\t\tskipEmptyLines: true,\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with steps when there are empty values",
+			"expected": [
+				{
+					"A": "a",
+					"B": "b",
+					"C": "c",
+					"D": "d"
+				},
+				{
+					"A": "a",
+					"B": "",
+					"C": "",
+					"D": ""
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('A,B,C,D\\na,b,c,d\\na,,,', {\n\t\t\t\theader: true,\n\t\t\t\tstep: function(results) {\n\t\t\t\t\tdata.push(results.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step is called with the contents of the row",
+			"expected": [
+				"A",
+				"b",
+				"c"
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tPapa.parse('A,b,c', {\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tcallback(response.data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step is called with the last cursor position",
+			"expected": [
+				6,
+				12,
+				17
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step exposes cursor for downloads",
+			"expected": [
+				129,
+				287,
+				452,
+				595,
+				727,
+				865,
+				1031,
+				1209
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step exposes cursor for chunked downloads",
+			"expected": [
+				129,
+				287,
+				452,
+				595,
+				727,
+				865,
+				1031,
+				1209
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step exposes cursor for workers",
+			"expected": [
+				452,
+				452,
+				452,
+				865,
+				865,
+				865,
+				1209,
+				1209
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tworker: true,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Chunk is called for each chunk",
+			"expected": [
+				3,
+				3,
+				2
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tchunk: function(response) {\n\t\t\t\t\tupdates.push(response.data.length);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Chunk is called with cursor position",
+			"expected": [
+				452,
+				865,
+				1209
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tchunk: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Chunk functions can pause parsing",
+			"expected": [
+				[
+					[
+						"A",
+						"b",
+						"c"
+					]
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tchunkSize: 10,\n\t\t\t\tchunk: function(response, handle) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\thandle.pause();\n\t\t\t\t\tcallback(updates);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(new Error('incorrect complete callback'));\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Chunk functions can resume parsing",
+			"expected": [
+				[
+					[
+						"A",
+						"b",
+						"c"
+					]
+				],
+				[
+					[
+						"d",
+						"E",
+						"f"
+					],
+					[
+						"G",
+						"h",
+						"i"
+					]
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tvar handle = null;\n\t\t\tvar first = true;\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tchunkSize: 10,\n\t\t\t\tchunk: function(response, h) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\tif (!first) return;\n\t\t\t\t\thandle = h;\n\t\t\t\t\thandle.pause();\n\t\t\t\t\tfirst = false;\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t\tsetTimeout(function() {\n\t\t\t\thandle.resume();\n\t\t\t}, 500);\n\t\t}"
+			}
+		},
+		{
+			"description": "Chunk functions can abort parsing",
+			"expected": [
+				[
+					[
+						"A",
+						"b",
+						"c"
+					]
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tchunkSize: 1,\n\t\t\t\tchunk: function(response, handle) {\n\t\t\t\t\tif (response.data.length) {\n\t\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\t\thandle.abort();\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\tcomplete: function(response) {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step exposes indexes for files",
+			"expected": [
+				6,
+				12,
+				17
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(new File(['A,b,c\\nd,E,f\\nG,h,i'], 'sample.csv'), {\n\t\t\t\tdownload: true,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step exposes indexes for chunked files",
+			"expected": [
+				6,
+				12,
+				17
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(new File(['A,b,c\\nd,E,f\\nG,h,i'], 'sample.csv'), {\n\t\t\t\tchunkSize: 3,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.meta.cursor);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Quoted line breaks near chunk boundaries are handled",
+			"expected": [
+				[
+					"A",
+					"B",
+					"C"
+				],
+				[
+					"X",
+					"Y\n1\n2\n3",
+					"Z"
+				]
+			],
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse(new File(['A,B,C\\nX,\"Y\\n1\\n2\\n3\",Z'], 'sample.csv'), {\n\t\t\t\tchunkSize: 3,\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step functions can abort parsing",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tstep: function(response, handle) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\thandle.abort();\n\t\t\t\t\tcallback(updates);\n\t\t\t\t},\n\t\t\t\tchunkSize: 6\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Complete is called after aborting",
+			"expected": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tstep: function(response, handle) {\n\t\t\t\t\thandle.abort();\n\t\t\t\t},\n\t\t\t\tchunkSize: 6,\n\t\t\t\tcomplete: function(response) {\n\t\t\t\t\tcallback(response.meta.aborted);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step functions can pause parsing",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tstep: function(response, handle) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\thandle.pause();\n\t\t\t\t\tcallback(updates);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback('incorrect complete callback');\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Step functions can resume parsing",
+			"expected": [
+				[
+					"A",
+					"b",
+					"c"
+				],
+				[
+					"d",
+					"E",
+					"f"
+				],
+				[
+					"G",
+					"h",
+					"i"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = [];\n\t\t\tvar handle = null;\n\t\t\tvar first = true;\n\t\t\tPapa.parse('A,b,c\\nd,E,f\\nG,h,i', {\n\t\t\t\tstep: function(response, h) {\n\t\t\t\t\tupdates.push(response.data);\n\t\t\t\t\tif (!first) return;\n\t\t\t\t\thandle = h;\n\t\t\t\t\thandle.pause();\n\t\t\t\t\tfirst = false;\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t\tsetTimeout(function() {\n\t\t\t\thandle.resume();\n\t\t\t}, 500);\n\t\t}"
+			}
+		},
+		{
+			"description": "Step functions can abort workers",
+			"expected": 1,
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = 0;\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tworker: true,\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tstep: function(response, handle) {\n\t\t\t\t\tupdates++;\n\t\t\t\t\thandle.abort();\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "beforeFirstChunk manipulates only first chunk",
+			"expected": 7,
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = 0;\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tbeforeFirstChunk: function(chunk) {\n\t\t\t\t\treturn chunk.replace(/.*?\\n/, '');\n\t\t\t\t},\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates++;\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "First chunk not modified if beforeFirstChunk returns nothing",
+			"expected": 8,
+			"disabled": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar updates = 0;\n\t\t\tPapa.parse(BASE_PATH + \"long-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tchunkSize: 500,\n\t\t\t\tbeforeFirstChunk: function(chunk) {\n\t\t\t\t},\n\t\t\t\tstep: function(response) {\n\t\t\t\t\tupdates++;\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(updates);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "Should correctly guess custom delimiter when passed delimiters to guess.",
+			"expected": "~",
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar results = Papa.parse('\"A\"~\"B\"~\"C\"~\"D\"', {\n\t\t\t\tdelimitersToGuess: ['~', '@', '%']\n\t\t\t});\n\t\t\tcallback(results.meta.delimiter);\n\t\t}"
+			}
+		},
+		{
+			"description": "Should still correctly guess default delimiters when delimiters to guess are not given.",
+			"expected": ",",
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar results = Papa.parse('\"A\",\"B\",\"C\",\"D\"');\n\t\t\tcallback(results.meta.delimiter);\n\t\t}"
+			}
+		},
+		{
+			"description": "Data is correctly parsed with chunks and duplicated headers",
+			"expected": [
+				{
+					"h0": "a",
+					"h1": "a"
+				},
+				{
+					"h0": "b",
+					"h1": "b"
+				}
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar data = [];\n\t\t\tPapa.parse('h0,h1\\na,a\\nb,b', {\n\t\t\t\theader: true,\n\t\t\t\tchunkSize: 10,\n\t\t\t\tchunk: function(results) {\n\t\t\t\t\tdata.push(results.data[0]);\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(data);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "downloadTimeout aborts a slow remote request with a timeout error",
+			"disabled": true,
+			"timeout": 5000,
+			"expected": true,
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tPapa.parse(BASE_PATH + \"slow-sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tdownloadTimeout: 200,\n\t\t\t\terror: function(err) {\n\t\t\t\t\tcallback(/timed out/i.test(err.message));\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(false);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "downloadTimeout does not interfere with a request that finishes in time",
+			"disabled": true,
+			"timeout": 5000,
+			"expected": [
+				[
+					"A",
+					"B",
+					"C"
+				],
+				[
+					"X",
+					"Y",
+					"Z"
+				]
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tPapa.parse(BASE_PATH + \"sample.csv\", {\n\t\t\t\tdownload: true,\n\t\t\t\tdownloadTimeout: 10000,\n\t\t\t\tcomplete: function(results) {\n\t\t\t\t\tcallback(results.data);\n\t\t\t\t},\n\t\t\t\terror: function(err) {\n\t\t\t\t\tcallback(err);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		},
+		{
+			"description": "transformHeader is called exactly once per header when streaming in chunks",
+			"expected": [
+				"Col1",
+				"Col2",
+				"Col3"
+			],
+			"run": {
+				"$fn": "function(callback) {\n\t\t\tvar seen = [];\n\t\t\tvar rows = [];\n\t\t\tfor (var i = 0; i < 20; i++)\n\t\t\t\trows.push('a' + i + ',b' + i + ',c' + i);\n\t\t\tvar input = 'Col1,Col2,Col3\\r\\n' + rows.join('\\r\\n');\n\t\t\tPapa.parse(input, {\n\t\t\t\theader: true,\n\t\t\t\tchunkSize: 10,\t// force many chunks so the header row is crossed once\n\t\t\t\ttransformHeader: function(header) {\n\t\t\t\t\tseen.push(header);\n\t\t\t\t\treturn header.toLowerCase();\n\t\t\t\t},\n\t\t\t\tcomplete: function() {\n\t\t\t\t\tcallback(seen);\n\t\t\t\t}\n\t\t\t});\n\t\t}"
+			}
+		}
+	]
+}

@@ -1,0 +1,162 @@
+name: Release
+
+# Push a tag like v0.2.0 after bumping workspace.package.version and CHANGELOG.md.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  id-token: write # npm provenance
+
+jobs:
+  cli-binaries:
+    name: CLI (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show && rustup target add ${{ matrix.target }}
+      - run: cargo build --release -p papaparse-cli --target ${{ matrix.target }}
+      - name: Package
+        shell: bash
+        run: |
+          bin=papaparse; [ "${{ runner.os }}" = Windows ] && bin=papaparse.exe
+          tar -czf papaparse-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release $bin
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: papaparse-*.tar.gz
+
+  crates-io:
+    name: Publish to crates.io
+    needs: cli-binaries
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - run: cargo publish -p papaparse
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - run: cargo publish -p papaparse-cli
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  node-addons:
+    name: addon (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+          - { os: windows-11-arm, target: aarch64-pc-windows-msvc }
+          # Linux builds go through zig: glibc 2.17 keeps the addon loadable on old distros,
+          # and musl cdylibs need the C runtime linked dynamically (-crt-static).
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, zig: x86_64-unknown-linux-gnu.2.17 }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, zig: aarch64-unknown-linux-gnu.2.17 }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl, zig: x86_64-unknown-linux-musl }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, zig: aarch64-unknown-linux-musl }
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show && rustup target add ${{ matrix.target }}
+      - if: matrix.zig
+        uses: mlugg/setup-zig@v2
+      - if: matrix.zig
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - name: Build
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.zig }}" ]; then
+            RUSTFLAGS="-C target-feature=-crt-static" \
+              cargo zigbuild -p papaparse-node --profile node-release --target ${{ matrix.zig }}
+          else
+            cargo build -p papaparse-node --profile node-release --target ${{ matrix.target }}
+          fi
+          dir=target/${{ matrix.target }}/node-release
+          mkdir -p dist
+          for lib in libpapaparse_node.dylib libpapaparse_node.so papaparse_node.dll; do
+            [ -f "$dir/$lib" ] && cp "$dir/$lib" dist/papaparse.${{ matrix.target }}.node
+          done
+          test -f dist/papaparse.${{ matrix.target }}.node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The musl addons can't load on the glibc runner; they are smoke-tested below.
+      - name: Test the addon
+        if: ${{ !contains(matrix.target, 'musl') }}
+        shell: bash
+        run: |
+          mkdir -p pkg && cp dist/papaparse.${{ matrix.target }}.node pkg/papaparse.node
+          cp crates/papaparse-node/js/*.cjs crates/papaparse-tape/js/*.cjs pkg/
+          cd bench && npm ci --no-audit --no-fund && cd ..
+          node tests/js/conformance.cjs pkg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: addon-${{ matrix.target }}
+          path: dist/*.node
+
+  musl-smoke:
+    name: addon on Alpine (${{ matrix.arch }})
+    needs: node-addons
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, arch: x86_64 }
+          - { os: ubuntu-24.04-arm, arch: aarch64 }
+    container: node:22-alpine
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: addon-${{ matrix.arch }}-unknown-linux-musl
+          path: dist
+      - run: |
+          mkdir -p pkg && cp dist/*.node pkg/papaparse.node
+          cp crates/papaparse-node/js/*.cjs crates/papaparse-tape/js/*.cjs pkg/
+          cd bench && npm ci --no-audit --no-fund && cd ..
+          node tests/js/conformance.cjs pkg
+
+  npm:
+    name: Publish to npm
+    needs: [node-addons, musl-smoke]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@0.2.129
+      - run: sudo apt-get update && sudo apt-get install -y binaryen
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: addon-*
+          path: dist
+          merge-multiple: true
+      - run: node scripts/npm-packages.mjs dist npm
+      - run: scripts/build-wasm.sh npm/papaparse-wasm
+      # Platform packages first, so the main package's optional dependencies resolve.
+      - name: Publish
+        run: |
+          for dir in npm/papaparse-node-*/ npm/papaparse-node/ npm/papaparse-wasm/; do
+            npm publish "$dir" --access public --provenance
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

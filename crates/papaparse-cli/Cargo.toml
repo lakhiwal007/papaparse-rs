@@ -1,0 +1,25 @@
+[package]
+name = "papaparse-cli"
+description = "Command-line CSV to JSON converter powered by the papaparse crate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories = ["command-line-utilities", "encoding"]
+
+[[bin]]
+name = "papaparse"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+papaparse = { workspace = true, features = ["serde"] }
+# `preserve_order`: write object keys in input order, as `Papa.unparse` does.
+serde_json = { workspace = true, features = ["preserve_order"] }
+
+[lints]
+workspace = true

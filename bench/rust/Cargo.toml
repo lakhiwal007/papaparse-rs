@@ -1,0 +1,15 @@
+[package]
+name = "papaparse-bench"
+description = "Native runner for the cross-implementation benchmark in bench/"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+papaparse = { workspace = true, features = ["serde"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true

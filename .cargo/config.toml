@@ -1,0 +1,4 @@
+# WebAssembly SIMD (simd128) lets memchr vectorize substring search in the wasm build.
+# Supported by Node >= 16.4 and all current browsers.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128"]
