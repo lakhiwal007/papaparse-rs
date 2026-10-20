@@ -90,7 +90,7 @@ jobs:
             [ -f "$dir/$lib" ] && cp "$dir/$lib" dist/papaparse.${{ matrix.target }}.node
           done
           test -f dist/papaparse.${{ matrix.target }}.node
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       # The musl addons can't load on the glibc runner; they are smoke-tested below.
@@ -137,7 +137,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: rustup show
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
