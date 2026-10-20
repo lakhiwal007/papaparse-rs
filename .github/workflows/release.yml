@@ -102,7 +102,7 @@ jobs:
           cp crates/papaparse-node/js/*.cjs crates/papaparse-tape/js/*.cjs pkg/
           cd bench && npm ci --no-audit --no-fund && cd ..
           node tests/js/conformance.cjs pkg
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: addon-${{ matrix.target }}
           path: dist/*.node
