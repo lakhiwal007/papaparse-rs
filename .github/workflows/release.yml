@@ -119,7 +119,7 @@ jobs:
     container: node:22-alpine
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: addon-${{ matrix.arch }}-unknown-linux-musl
           path: dist
@@ -145,7 +145,7 @@ jobs:
         with:
           tool: wasm-bindgen@0.2.129
       - run: sudo apt-get update && sudo apt-get install -y binaryen
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: addon-*
           path: dist
